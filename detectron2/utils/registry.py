@@ -52,7 +52,6 @@ class Registry(object):
                 return func_or_class
 
             return deco
-
         # used as a function call
         name = obj.__name__
         self._do_register(name, obj)

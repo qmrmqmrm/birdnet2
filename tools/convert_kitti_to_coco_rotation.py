@@ -136,7 +136,6 @@ def convert_kitti_training(data_dir, out_dir, val_file, train_file, only_eval_cl
         subsets.append('training')
         subsets_files.append(train_file)
         print("training file: %s" % train_file)
-    print(subsets,subsets_files)
     only_eval_classes = only_eval_classes.split(',')
     only_eval_classes = [int(cl) for cl in only_eval_classes]
     categories = ['Car', 'Van', 'Truck', 'Pedestrian', 'Person_sitting', 'Cyclist', 'Tram', 'Misc', 'DontCare']
@@ -204,7 +203,6 @@ def convert_kitti_training(data_dir, out_dir, val_file, train_file, only_eval_cl
 
                 velodyne_h = 1.73 # TODO Change to use TF
                 calib = Calibration(complete_name_calib)
-
                 pre_objs = np.genfromtxt(complete_name_ann, delimiter=' ',
                     names=['type', 'truncated', 'occluded', 'alpha', 'bbox_xmin', 'bbox_ymin',
                     'bbox_xmax', 'bbox_ymax', 'dimensions_1', 'dimensions_2', 'dimensions_3',

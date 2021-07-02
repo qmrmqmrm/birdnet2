@@ -29,6 +29,7 @@ def register_coco_instances(name, metadata, json_file, image_root, extra_argumen
         image_root (str): directory which contains all the images.
     """
     # 1. register a function which returns dicts
+
     if extra_arguments is None:
         DatasetCatalog.register(name, lambda: load_coco_json(json_file, image_root, name))
     else:
@@ -39,6 +40,7 @@ def register_coco_instances(name, metadata, json_file, image_root, extra_argumen
     MetadataCatalog.get(name).set(
         json_file=json_file, image_root=image_root, evaluator_type="coco", **metadata
     )
+    print("register_coco_instances fin")
 
 
 def register_coco_panoptic_separated(

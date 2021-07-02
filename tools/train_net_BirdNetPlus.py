@@ -1,4 +1,4 @@
-#!/usr/local/bin/python3
+#!/home/ri-1080/.pyenv/versions/birdnet2/bin/python
 import os, sys
 from detectron2.data.datasets import register_coco_instances
 from detectron2.data import MetadataCatalog, DatasetCatalog
@@ -31,10 +31,13 @@ def parse_args():
 
 def main(config_file, training_classes):
     # Logger and configuration load
+    print("main")
     logger = logging.getLogger("detectron2.trainer")
     cfg = get_cfg()
     cfg.merge_from_file(os.path.join(detectron2_root,"configs/{}.yaml".format(config_file)))
+    print("default ssetup")
     default_setup(cfg, None)
+    print("fin defsetup")
 
     # Registering datasets and different fields, it must be configured in yaml file
     nclasses = cfg.MODEL.ROI_HEADS.NUM_CLASSES
@@ -57,16 +60,19 @@ def main(config_file, training_classes):
         optional_arguments.append('height')
 
     # Generate annotations
+    print("start convert_kitti_training")
     train_path = gen.convert_kitti_training(ann_data_dir, ann_out_dir, ann_val_file, ann_train_file,\
                 training_classes, ann_bins, cfg.VIEWPOINT, cfg.VIEWPOINT_RESIDUAL, cfg.ROTATED_BOX_TRAINING, cfg.HEIGHT_TRAINING)
+    print("fin convert_kitti_training")
     register_coco_instances("birdview_train", {}, train_path, detectron2_root, optional_arguments)
-
+    print("fdfd")
     os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)
-    trainer = DefaultTrainer(cfg) 
+    print("cfg.dfdfwdf")
+    trainer = DefaultTrainer(cfg)
 
     # TRAINING MODEL
     # Set False here to take a pth model for starting, else it will take a pkl or the last pth if exists
-    trainer.resume_or_load(resume=True) 
+    trainer.resume_or_load(resume=True)
     logger.info("Starting training now...")
     trainer.train()
 
