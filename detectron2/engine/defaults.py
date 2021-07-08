@@ -212,9 +212,7 @@ class DefaultTrainer(SimpleTrainer):
             cfg (CfgNode):
         """
         # Assume these objects must be constructed in this order.
-        print("DefaultTrainer")
         model = self.build_model(cfg)
-        print("model")
         if cfg.FREEZE_ALL:
             # Freeze model parameters except for viewpoint
             for name,param in model.named_parameters():
@@ -257,7 +255,6 @@ class DefaultTrainer(SimpleTrainer):
         """
         # The checkpoint stores the training iteration that just finished, thus we start
         # at the next iteration (or iter zero if there's no checkpoint).
-
         self.checkpointer._set_resume(resume)
         self.start_iter = (
             self.checkpointer.resume_or_load(self.cfg.MODEL.WEIGHTS, resume=resume).get(
@@ -338,7 +335,6 @@ class DefaultTrainer(SimpleTrainer):
         """
         super().train(self.start_iter, self.max_iter)
         if hasattr(self, "_last_eval_results") and comm.is_main_process():
-            print("_last_eval_results")
             verify_results(self.cfg, self._last_eval_results)
             return self._last_eval_results
 
@@ -403,7 +399,6 @@ class DefaultTrainer(SimpleTrainer):
             dict: a dict of result metrics
         """
         logger = logging.getLogger(__name__)
-        print("logger")
         if isinstance(evaluators, DatasetEvaluator):
             evaluators = [evaluators]
         if evaluators is not None:
@@ -412,7 +407,6 @@ class DefaultTrainer(SimpleTrainer):
             )
 
         results = OrderedDict()
-        print("result")
         for idx, dataset_name in enumerate(cfg.DATASETS.TEST):
             data_loader = cls.build_test_loader(cfg, dataset_name)
             # When evaluators are passed in as arguments,
@@ -422,7 +416,6 @@ class DefaultTrainer(SimpleTrainer):
                 if evaluators is not None
                 else cls.build_evaluator(cfg, dataset_name)
             )
-            print("evaluator",evaluator)
             results_i = inference_on_dataset(model, data_loader, evaluator)
             results[dataset_name] = results_i
             if comm.is_main_process():

@@ -164,7 +164,8 @@ def convert_kitti_training(data_dir, out_dir, val_file, train_file, only_eval_cl
         outfile_name = os.path.join(out_dir, json_name)
         if os.path.exists(outfile_name):
             print('File exists: '+str(outfile_name))
-            ans = input("Do you want to overwrite it? (y/n)")
+            # ans = input("Do you want to overwrite it? (y/n)")
+            ans = 'n'
             if ans is 'n':
                 # Return always the same file to match with training script
                 return os.path.join(out_dir, '{}_annotations_kitti_{}_{}.json'.format('training', strclasses,strargs))

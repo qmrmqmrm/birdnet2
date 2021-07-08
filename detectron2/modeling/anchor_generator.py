@@ -176,6 +176,7 @@ class DefaultAnchorGenerator(nn.Module):
             list[list[Boxes]]: a list of #image elements. Each is a list of #feature level Boxes.
                 The Boxes contains anchors of this image on the specific feature level.
         """
+
         num_images = len(features[0])
         grid_sizes = [feature_map.shape[-2:] for feature_map in features]
         anchors_over_all_feature_maps = self.grid_anchors(grid_sizes)

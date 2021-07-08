@@ -198,7 +198,6 @@ class SimpleTrainer(TrainerBase):
         """
         Implement the standard training logic described above.
         """
-        print("trian_loop/SimpleTrainer run_step")
         assert self.model.training, "[SimpleTrainer] model was changed to eval mode!"
         start = time.perf_counter()
         """
@@ -211,14 +210,11 @@ class SimpleTrainer(TrainerBase):
         If your want to do something with the losses, you can wrap the model.
         """
         loss_dict = self.model(data)
-        print(loss_dict)
         losses = sum(loss for loss in loss_dict.values())
-        print(losses)
         self._detect_anomaly(losses, loss_dict)
 
         metrics_dict = loss_dict
         metrics_dict["data_time"] = data_time
-        print(metrics_dict)
         self._write_metrics(metrics_dict)
 
         """

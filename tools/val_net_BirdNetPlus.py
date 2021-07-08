@@ -31,7 +31,7 @@ This script allows the user to:
 def parse_args():
     parser = argparse.ArgumentParser(description='Validation script for BirdNet+')
     parser.add_argument(
-        '--config_file', help="Name of the configuration to use without extension", default='Base-BirdNetPlus',
+        '--config_file', help="Name of the configuration to use without extension", default='Base-BirdNetPlus_2',
         type=str)
     parser.add_argument(
         '--ann_val',
@@ -258,6 +258,9 @@ def main(config_file, ann_val, write, img2show, save_img, eval_chkp, force_test,
         cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = score_thresh
         cfg.MODEL.ROI_HEADS.NMS_THRESH_TEST = nms_thresh
         predictor = DefaultPredictor(cfg)
+        print("\n\n\n\n")
+        print("predictor")
+        print(predictor)
 
         val_bv_dicts = DatasetCatalog.get("birdview_val")
         val_bv_meta = MetadataCatalog.get("birdview_val")

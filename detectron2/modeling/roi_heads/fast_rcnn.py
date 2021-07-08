@@ -661,3 +661,70 @@ class FastRCNNOutputLayers(nn.Module):
                 return scores, proposal_deltas, viewpoint_scores, viewpoint_residuals, height_scores
             return scores, proposal_deltas, viewpoint_scores, viewpoint_residuals, None
         return scores, proposal_deltas, None, None, None
+
+
+class FastRCNNOutputLayers_2(nn.Module):
+    """
+    Two linear layers for predicting Fast R-CNN outputs:
+      (1) proposal-to-detection box regression deltas
+      (2) classification scores
+    """
+
+    def __init__(self, cfg, input_size, num_classes, cls_agnostic_bbox_reg, box_dim=4):
+        """
+        Args:
+            input_size (int): channels, or (channels, height, width)
+            num_classes (int): number of foreground classes
+            cls_agnostic_bbox_reg (bool): whether to use class agnostic for bbox regression
+            box_dim (int): the dimension of bounding boxes.
+                Example box dimensions: 4 for regular XYXY boxes and 5 for rotated XYWHA boxes
+        """
+        super(FastRCNNOutputLayers_2, self).__init__()
+
+        if not isinstance(input_size, int):
+            input_size = np.prod(input_size)
+
+        # The prediction layer for num_classes foreground classes and one background class
+        # (hence + 1)
+        self.cls_score = nn.Linear(input_size, num_classes + 1)
+        num_bbox_reg_classes = 1 if cls_agnostic_bbox_reg else num_classes
+        self.bbox_pred = nn.Linear(input_size, num_bbox_reg_classes * box_dim)
+
+        nn.init.normal_(self.cls_score.weight, std=0.01)
+        nn.init.normal_(self.bbox_pred.weight, std=0.001)
+        for l in [self.cls_score, self.bbox_pred]:
+            nn.init.constant_(l.bias, 0)
+
+        self.viewpoint = cfg.VIEWPOINT
+        viewpoint_bins = cfg.VP_BINS
+        self.viewpoint_residual = cfg.VIEWPOINT_RESIDUAL
+        self.height_training = cfg.HEIGHT_TRAINING
+        if self.viewpoint:
+            self.viewpoint_pred = nn.Linear(input_size, viewpoint_bins * num_classes)
+            # torch.nn.init.kaiming_normal_(self.viewpoint_pred.weight,nonlinearity='relu')
+            nn.init.xavier_normal_(self.viewpoint_pred.weight)
+            nn.init.constant_(self.viewpoint_pred.bias, 0)
+        if self.viewpoint_residual:
+            self.viewpoint_pred_residuals = nn.Linear(input_size, viewpoint_bins * num_classes)
+            nn.init.xavier_normal_(self.viewpoint_pred_residuals.weight)
+            # torch.nn.init.kaiming_normal_(self.viewpoint_pred_residuals.weight,nonlinearity='relu')
+            nn.init.constant_(self.viewpoint_pred_residuals.bias, 0)
+        if self.height_training:
+            self.height_pred = nn.Linear(input_size, 2 * num_classes)
+            nn.init.xavier_normal_(self.height_pred.weight)
+            # torch.nn.init.kaiming_normal_(self.height_pred.weight,nonlinearity='relu')
+            nn.init.constant_(self.height_pred.bias, 0)
+
+    def forward(self, x):
+        if x.dim() > 2:
+            x = torch.flatten(x, start_dim=1)
+        scores = self.cls_score(x)
+        proposal_deltas = self.bbox_pred(x)
+        if self.viewpoint:
+            viewpoint_scores = self.viewpoint_pred(x)
+            viewpoint_residuals = self.viewpoint_pred_residuals(x) if self.viewpoint_residual else None
+            if self.height_training:
+                height_scores = self.height_pred(x)
+                return scores, proposal_deltas, viewpoint_scores, viewpoint_residuals, height_scores
+            return scores, proposal_deltas, viewpoint_scores, viewpoint_residuals, None
+        return scores, proposal_deltas, None, None, None

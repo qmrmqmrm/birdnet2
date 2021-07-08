@@ -23,7 +23,7 @@ Enjoy!
 def parse_args():
     parser = argparse.ArgumentParser(description='Training script for BirdNet+')
     parser.add_argument(
-        '--config_file', help="Name of the configuration to use without extension", default='Base-BirdNetPlus', type=str)
+        '--config_file', help="Name of the configuration to use without extension", default='Base-BirdNetPlus_2', type=str)
     parser.add_argument(
         '--training_classes', help="Index of the classes to train with, corresponding to 'Car:0', 'Van:1', 'Truck:2', 'Pedestrian:3', 'Person_sitting:4', 'Cyclist:5', 'Tram:6', 'Misc:7', 'DontCare:8'",\
          default='0,3,5', type=str)
@@ -31,13 +31,10 @@ def parse_args():
 
 def main(config_file, training_classes):
     # Logger and configuration load
-    print("main")
     logger = logging.getLogger("detectron2.trainer")
     cfg = get_cfg()
     cfg.merge_from_file(os.path.join(detectron2_root,"configs/{}.yaml".format(config_file)))
-    print("default ssetup")
     default_setup(cfg, None)
-    print("fin defsetup")
 
     # Registering datasets and different fields, it must be configured in yaml file
     nclasses = cfg.MODEL.ROI_HEADS.NUM_CLASSES
@@ -60,14 +57,10 @@ def main(config_file, training_classes):
         optional_arguments.append('height')
 
     # Generate annotations
-    print("start convert_kitti_training")
     train_path = gen.convert_kitti_training(ann_data_dir, ann_out_dir, ann_val_file, ann_train_file,\
                 training_classes, ann_bins, cfg.VIEWPOINT, cfg.VIEWPOINT_RESIDUAL, cfg.ROTATED_BOX_TRAINING, cfg.HEIGHT_TRAINING)
-    print("fin convert_kitti_training")
     register_coco_instances("birdview_train", {}, train_path, detectron2_root, optional_arguments)
-    print("fdfd")
     os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)
-    print("cfg.dfdfwdf")
     trainer = DefaultTrainer(cfg)
 
     # TRAINING MODEL

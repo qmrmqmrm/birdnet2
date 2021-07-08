@@ -40,7 +40,6 @@ def register_coco_instances(name, metadata, json_file, image_root, extra_argumen
     MetadataCatalog.get(name).set(
         json_file=json_file, image_root=image_root, evaluator_type="coco", **metadata
     )
-    print("register_coco_instances fin")
 
 
 def register_coco_panoptic_separated(
