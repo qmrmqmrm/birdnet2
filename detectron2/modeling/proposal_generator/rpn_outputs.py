@@ -147,6 +147,7 @@ def find_top_rpn_proposals(
         res.proposal_boxes = boxes[keep]
         res.objectness_logits = scores_per_img[keep]
         results.append(res)
+        # print((res.gt_classes))
     return results
 
 
@@ -297,7 +298,7 @@ class RPNOutputs(object):
                 Loss names are: `loss_rpn_cls` for objectness classification and
                 `loss_rpn_loc` for proposal localization.
         """
-        print("RPNOutputs_losses")
+
 
         def resample(label):
             """
@@ -399,7 +400,7 @@ class RPNOutputs(object):
             proposals (list[Tensor]): A list of L tensors. Tensor i has shape
                 (N, Hi*Wi*A, B), where B is box dimension (4 or 5).
         """
-        print("RPNOutputs_predict_proposals")
+
         proposals = []
         # Transpose anchors from images-by-feature-maps (N, L) to feature-maps-by-images (L, N)
         anchors = list(zip(*self.anchors))

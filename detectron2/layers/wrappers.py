@@ -91,7 +91,7 @@ class Conv2d(torch.nn.Conv2d):
             x = self.activation(x)
         return x
 
-class Conv2d_2(torch.nn.Conv2d):
+class Conv2d_JM(torch.nn.Conv2d):
     """
     A wrapper around :class:`torch.nn.Conv2d` to support zero-size tensor and more features.
     """

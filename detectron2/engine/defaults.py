@@ -32,6 +32,7 @@ from detectron2.evaluation import (
     verify_results,
 )
 from detectron2.modeling import build_model
+from detectron2.modeling.meta_arch import GeneralizedRCNN
 from detectron2.solver import build_lr_scheduler, build_optimizer
 from detectron2.utils import comm
 from detectron2.utils.collect_env import collect_env_info
@@ -345,8 +346,9 @@ class DefaultTrainer(SimpleTrainer):
             torch.nn.Module:
         """
         model = build_model(cfg)
-        logger = logging.getLogger(__name__)
-        logger.info("Model:\n{}".format(model))
+        # model = GeneralizedRCNN(cfg)
+        # logger = logging.getLogger(__name__)
+        # logger.info("Model:\n{}".format(model))
         return model
 
     @classmethod

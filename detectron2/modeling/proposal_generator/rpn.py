@@ -81,7 +81,7 @@ class StandardRPNHead(nn.Module):
             pred_anchor_deltas.append(self.anchor_deltas(t))
         return pred_objectness_logits, pred_anchor_deltas
 @RPN_HEAD_REGISTRY.register()
-class StandardRPNHead_2(nn.Module):
+class StandardRPNHead_JM(nn.Module):
     """
     RPN classification and regression heads. Uses a 3x3 conv to produce a shared
     hidden state from which one 1x1 conv predicts objectness logits for each anchor
@@ -240,7 +240,7 @@ class RPN(nn.Module):
 
 
 @PROPOSAL_GENERATOR_REGISTRY.register()
-class RPN_2(nn.Module):
+class RPN_JM(nn.Module):
     """
     Region Proposal Network, introduced by the Faster R-CNN paper.
     """
@@ -293,7 +293,7 @@ class RPN_2(nn.Module):
             proposals: list[Instances] or None
             loss: dict[Tensor]
         """
-        print("RPN_2_forward")
+        # print("RPN_JM_forward")
         gt_boxes = [x.gt_boxes for x in gt_instances] if gt_instances is not None else None
         del gt_instances
         features = [features[f] for f in self.in_features]

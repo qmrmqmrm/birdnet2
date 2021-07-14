@@ -17,7 +17,7 @@ from ..poolers import ROIPooler
 from ..proposal_generator.proposal_utils import add_ground_truth_to_proposals
 from ..sampling import subsample_labels
 from .box_head import build_box_head
-from .fast_rcnn import FastRCNNOutputLayers, FastRCNNOutputs, FastRCNNOutputLayers_2
+from .fast_rcnn import FastRCNNOutputLayers, FastRCNNOutputs, FastRCNNOutputLayers_JM
 from .keypoint_head import build_keypoint_head, keypoint_rcnn_inference, keypoint_rcnn_loss
 from .mask_head import build_mask_head, mask_rcnn_inference, mask_rcnn_loss
 
@@ -39,6 +39,8 @@ def build_roi_heads(cfg, input_shape):
     Build ROIHeads defined by `cfg.MODEL.ROI_HEADS.NAME`.
     """
     name = cfg.MODEL.ROI_HEADS.NAME
+    print("build_roi_heads")
+    print(name)
     return ROI_HEADS_REGISTRY.get(name)(cfg, input_shape)
 
 
@@ -304,7 +306,7 @@ class ROIHeads(torch.nn.Module):
         raise NotImplementedError()
 
 
-class ROIHeads_2(torch.nn.Module):
+class ROIHeads_JM(torch.nn.Module):
     """
     ROIHeads perform all per-region computation in an R-CNN.
 
@@ -315,7 +317,7 @@ class ROIHeads_2(torch.nn.Module):
     """
 
     def __init__(self, cfg, input_shape: Dict[str, ShapeSpec]):
-        super(ROIHeads_2, self).__init__()
+        super(ROIHeads_JM, self).__init__()
 
         # fmt: off
         self.batch_size_per_image     = cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE
@@ -607,6 +609,7 @@ class Res5ROIHeads(ROIHeads):
                 if "viewpoint" in loss:
                     losses[loss] *= self.vp_weight_loss
             if self.mask_on:
+                print("maske_on")
                 proposals, fg_selection_masks = select_foreground_proposals(
                     proposals, self.num_classes
                 )
@@ -927,7 +930,7 @@ class StandardROIHeads(ROIHeads):
             return instances
 
 @ROI_HEADS_REGISTRY.register()
-class StandardROIHeads_2(ROIHeads_2):
+class StandardROIHeads_JM(ROIHeads_JM):
     """
     It's "standard" in a sense that there is no ROI transform sharing
     or feature sharing between tasks.
@@ -940,7 +943,7 @@ class StandardROIHeads_2(ROIHeads_2):
     """
 
     def __init__(self, cfg, input_shape):
-        super(StandardROIHeads_2, self).__init__(cfg, input_shape)
+        super(StandardROIHeads_JM, self).__init__(cfg, input_shape)
         self._init_box_head(cfg)
         self._init_mask_head(cfg)
         self._init_keypoint_head(cfg)
@@ -973,7 +976,7 @@ class StandardROIHeads_2(ROIHeads_2):
         self.box_head = build_box_head(
             cfg, ShapeSpec(channels=in_channels, height=pooler_resolution, width=pooler_resolution)
         )
-        self.box_predictor = FastRCNNOutputLayers_2(
+        self.box_predictor = FastRCNNOutputLayers_JM(
             cfg, self.box_head.output_size, self.num_classes, self.cls_agnostic_bbox_reg
         )
 

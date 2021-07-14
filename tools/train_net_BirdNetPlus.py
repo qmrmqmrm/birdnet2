@@ -23,7 +23,7 @@ Enjoy!
 def parse_args():
     parser = argparse.ArgumentParser(description='Training script for BirdNet+')
     parser.add_argument(
-        '--config_file', help="Name of the configuration to use without extension", default='Base-BirdNetPlus_2', type=str)
+        '--config_file', help="Name of the configuration to use without extension", default='Base-BirdNetPlus_JM', type=str)
     parser.add_argument(
         '--training_classes', help="Index of the classes to train with, corresponding to 'Car:0', 'Van:1', 'Truck:2', 'Pedestrian:3', 'Person_sitting:4', 'Cyclist:5', 'Tram:6', 'Misc:7', 'DontCare:8'",\
          default='0,3,5', type=str)

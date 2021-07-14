@@ -3,22 +3,22 @@ MODEL:
   WEIGHTS: "/home/ri-1080/work2/birdnet2/datasets/R-50.pkl"
   MASK_ON: False
   BACKBONE:
-    NAME: "build_resnet_fpn_backbone_2"
+    NAME: "build_resnet_fpn_backbone_JM"
     FREEZE_AT: 0
   RESNETS:
     DEPTH: 50
     OUT_FEATURES: ["res2", "res3", "res4"]
-  META_ARCHITECTURE: "GeneralizedRCNN_2"
+  META_ARCHITECTURE: "GeneralizedRCNN_JM"
   FPN:
     IN_FEATURES: ["res2", "res3", "res4"]
   ROI_HEADS:
     NUM_CLASSES: 3
-    NAME: "StandardROIHeads_2"
+    NAME: "StandardROIHeads_JM"
     IN_FEATURES: ["p2", "p3", "p4"]
   PROPOSAL_GENERATOR:
-    NAME: "RPN_2"
+    NAME: "RPN_JM"
   ROI_BOX_HEAD:
-    NAME: "FastRCNNConvFCHead_2"
+    NAME: "FastRCNNConvFCHead_JM"
     NUM_FC: 2
     POOLER_RESOLUTION: 7
   RPN:
@@ -36,10 +36,10 @@ DATASETS:
 SOLVER:
   BASE_LR: 0.01
   STEPS: (17500, 22500)
-  MAX_ITER: 3000
+  MAX_ITER: 30000
   IMS_PER_BATCH: 2
   CHECKPOINT_PERIOD: 2500
-OUTPUT_DIR: "./models_kitti_2_2"
+OUTPUT_DIR: "./models_kitti_JM"
 VIEWPOINT: True
 ROTATED_BOX_TRAINING: True
 HEIGHT_TRAINING: True

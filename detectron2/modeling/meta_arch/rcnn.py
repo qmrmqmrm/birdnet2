@@ -12,7 +12,7 @@ from ..proposal_generator import build_proposal_generator
 from ..roi_heads import build_roi_heads
 from .build import META_ARCH_REGISTRY
 
-__all__ = ["GeneralizedRCNN", "GeneralizedRCNN_2", "ProposalNetwork"]
+__all__ = ["GeneralizedRCNN", "GeneralizedRCNN_JM", "ProposalNetwork"]
 
 
 @META_ARCH_REGISTRY.register()
@@ -85,12 +85,16 @@ class GeneralizedRCNN(nn.Module):
             assert "proposals" in batched_inputs[0]
             proposals = [x["proposals"].to(self.device) for x in batched_inputs]
             proposal_losses = {}
+        print("proposals type : ",type(proposals))
+        print("proposals type : ",type(proposals))
+        print("proposals type : ",type(proposals))
 
         _, detector_losses = self.roi_heads(images, features, proposals, gt_instances)
 
         losses = {}
         losses.update(detector_losses)
         losses.update(proposal_losses)
+        print("losss")
         return losses
 
     def inference(self, batched_inputs, detected_instances=None, do_postprocess=True):
@@ -151,7 +155,7 @@ class GeneralizedRCNN(nn.Module):
         return images
 
 @META_ARCH_REGISTRY.register()
-class GeneralizedRCNN_2(nn.Module):
+class GeneralizedRCNN_JM(nn.Module):
     """
     Generalized R-CNN. Any models that contains the following three components:
     1. Per-image feature extraction (aka backbone)
@@ -245,7 +249,7 @@ class GeneralizedRCNN_2(nn.Module):
             same as in :meth:`forward`.
         """
         assert not self.training
-        print("GeneralizedRCNN_2_inference")
+        # print("GeneralizedRCNN_JM_inference")
         images = self.preprocess_image(batched_inputs)
         features = self.backbone(images.tensor)
 

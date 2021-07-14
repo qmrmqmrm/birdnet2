@@ -31,7 +31,7 @@ This script allows the user to:
 def parse_args():
     parser = argparse.ArgumentParser(description='Validation script for BirdNet+')
     parser.add_argument(
-        '--config_file', help="Name of the configuration to use without extension", default='Base-BirdNetPlus_2',
+        '--config_file', help="Name of the configuration to use without extension", default='Base-BirdNetPlus_JM',
         type=str)
     parser.add_argument(
         '--ann_val',

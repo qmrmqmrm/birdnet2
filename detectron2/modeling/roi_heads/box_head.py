@@ -5,7 +5,7 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 
-from detectron2.layers import Conv2d, ShapeSpec, get_norm ,Conv2d_2
+from detectron2.layers import Conv2d, ShapeSpec, get_norm ,Conv2d_JM
 from detectron2.utils.registry import Registry
 
 ROI_BOX_HEAD_REGISTRY = Registry("ROI_BOX_HEAD")
@@ -86,7 +86,7 @@ class FastRCNNConvFCHead(nn.Module):
 
 
 @ROI_BOX_HEAD_REGISTRY.register()
-class FastRCNNConvFCHead_2(nn.Module):
+class FastRCNNConvFCHead_JM(nn.Module):
     """
     A head with several 3x3 conv layers (each followed by norm & relu) and
     several fc layers (each followed by relu).
@@ -114,7 +114,7 @@ class FastRCNNConvFCHead_2(nn.Module):
 
         self.conv_norm_relus = []
         for k in range(num_conv):
-            conv = Conv2d_2(
+            conv = Conv2d_JM(
                 self._output_size[0],
                 conv_dim,
                 kernel_size=3,

@@ -663,7 +663,7 @@ class FastRCNNOutputLayers(nn.Module):
         return scores, proposal_deltas, None, None, None
 
 
-class FastRCNNOutputLayers_2(nn.Module):
+class FastRCNNOutputLayers_JM(nn.Module):
     """
     Two linear layers for predicting Fast R-CNN outputs:
       (1) proposal-to-detection box regression deltas
@@ -679,7 +679,7 @@ class FastRCNNOutputLayers_2(nn.Module):
             box_dim (int): the dimension of bounding boxes.
                 Example box dimensions: 4 for regular XYXY boxes and 5 for rotated XYWHA boxes
         """
-        super(FastRCNNOutputLayers_2, self).__init__()
+        super(FastRCNNOutputLayers_JM, self).__init__()
 
         if not isinstance(input_size, int):
             input_size = np.prod(input_size)

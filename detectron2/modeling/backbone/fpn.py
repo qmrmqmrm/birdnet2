@@ -4,13 +4,13 @@ import fvcore.nn.weight_init as weight_init
 import torch.nn.functional as F
 from torch import nn
 
-from detectron2.layers import Conv2d, ShapeSpec, get_norm, Conv2d_2
+from detectron2.layers import Conv2d, ShapeSpec, get_norm, Conv2d_JM
 
 from .backbone import Backbone
 from .build import BACKBONE_REGISTRY
-from .resnet import build_resnet_backbone, build_resnet_backbone_2
+from .resnet import build_resnet_backbone, build_resnet_backbone_JM
 
-__all__ = ["build_resnet_fpn_backbone","build_resnet_fpn_backbone_2" ,"build_retinanet_resnet_fpn_backbone", "FPN","FPN_2"]
+__all__ = ["build_resnet_fpn_backbone","build_resnet_fpn_backbone_JM" ,"build_retinanet_resnet_fpn_backbone", "FPN","FPN_JM"]
 
 
 class FPN(Backbone):
@@ -151,7 +151,7 @@ class FPN(Backbone):
         }
 
 
-class FPN_2(Backbone):
+class FPN_JM(Backbone):
     """
     This module implements Feature Pyramid Network.
     It creates pyramid features built on top of some input feature maps.
@@ -183,7 +183,7 @@ class FPN_2(Backbone):
                 ones. It can be "sum" (default), which sums up element-wise; or "avg",
                 which takes the element-wise mean of the two.
         """
-        super(FPN_2, self).__init__()
+        super(FPN_JM, self).__init__()
         assert isinstance(bottom_up, Backbone)
 
         # Feature map strides and channels from the bottom up network (e.g. ResNet)
@@ -199,10 +199,10 @@ class FPN_2(Backbone):
             lateral_norm = get_norm(norm, out_channels)
             output_norm = get_norm(norm, out_channels)
 
-            lateral_conv = Conv2d_2(
+            lateral_conv = Conv2d_JM(
                 in_channels, out_channels, kernel_size=1, bias=use_bias, norm=lateral_norm
             )
-            output_conv = Conv2d_2(
+            output_conv = Conv2d_JM(
                 out_channels,
                 out_channels,
                 kernel_size=3,
@@ -258,7 +258,6 @@ class FPN_2(Backbone):
                 ["p2", "p3", ..., "p6"].
         """
         # Reverse feature maps into top-down order (from low to high resolution)
-        print("FPN_2_forward")
         bottom_up_features = self.bottom_up(x)
         x = [bottom_up_features[f] for f in self.in_features[::-1]]
 
@@ -365,7 +364,7 @@ def build_resnet_fpn_backbone(cfg, input_shape: ShapeSpec):
     return backbone
 
 @BACKBONE_REGISTRY.register()
-def build_resnet_fpn_backbone_2(cfg, input_shape: ShapeSpec):
+def build_resnet_fpn_backbone_JM(cfg, input_shape: ShapeSpec):
     """
     Args:
         cfg: a detectron2 CfgNode
@@ -373,10 +372,10 @@ def build_resnet_fpn_backbone_2(cfg, input_shape: ShapeSpec):
     Returns:
         backbone (Backbone): backbone module, must be a subclass of :class:`Backbone`.
     """
-    bottom_up = build_resnet_backbone_2(cfg, input_shape)
+    bottom_up = build_resnet_backbone_JM(cfg, input_shape)
     in_features = cfg.MODEL.FPN.IN_FEATURES
     out_channels = cfg.MODEL.FPN.OUT_CHANNELS
-    backbone = FPN_2(
+    backbone = FPN_JM(
         bottom_up=bottom_up,
         in_features=in_features,
         out_channels=out_channels,
@@ -407,4 +406,5 @@ def build_retinanet_resnet_fpn_backbone(cfg, input_shape: ShapeSpec):
         top_block=LastLevelP6P7(in_channels_p6p7, out_channels),
         fuse_type=cfg.MODEL.FPN.FUSE_TYPE,
     )
+
     return backbone

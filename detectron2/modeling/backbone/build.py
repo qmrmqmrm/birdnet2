@@ -28,6 +28,8 @@ def build_backbone(cfg, input_shape=None):
         input_shape = ShapeSpec(channels=len(cfg.MODEL.PIXEL_MEAN))
 
     backbone_name = cfg.MODEL.BACKBONE.NAME
+    print("build_backbone")
+    print(backbone_name)
     backbone = BACKBONE_REGISTRY.get(backbone_name)(cfg, input_shape)
     assert isinstance(backbone, Backbone)
     return backbone

@@ -7,7 +7,7 @@ from torch import nn
 
 from detectron2.layers import (
     Conv2d,
-    Conv2d_2,
+    Conv2d_JM,
     DeformConv,
     FrozenBatchNorm2d,
     ModulatedDeformConv,
@@ -23,12 +23,12 @@ __all__ = [
     "BottleneckBlock",
     "DeformBottleneckBlock",
     "BasicStem",
-    "BasicStem_2",
+    "BasicStem_JM",
     "ResNet",
-    "ResNet_2",
+    "ResNet_JM",
     "make_stage",
     "build_resnet_backbone",
-    "build_resnet_backbone_2"
+    "build_resnet_backbone_JM"
 ]
 
 
@@ -158,7 +158,7 @@ class BottleneckBlock(ResNetBlockBase):
         return out
 
 
-class BottleneckBlock_2(ResNetBlockBase):
+class BottleneckBlock_JM(ResNetBlockBase):
     def __init__(
         self,
         in_channels,
@@ -179,10 +179,11 @@ class BottleneckBlock_2(ResNetBlockBase):
             stride_in_1x1 (bool): when stride==2, whether to put stride in the
                 first 1x1 convolution or the bottleneck 3x3 convolution.
         """
+        # print("BottleneckBlock_JM")
         super().__init__(in_channels, out_channels, stride)
 
         if in_channels != out_channels:
-            self.shortcut = Conv2d_2(
+            self.shortcut = Conv2d_JM(
                 in_channels,
                 out_channels,
                 kernel_size=1,
@@ -198,7 +199,7 @@ class BottleneckBlock_2(ResNetBlockBase):
         # stride in the 3x3 conv
         stride_1x1, stride_3x3 = (stride, 1) if stride_in_1x1 else (1, stride)
 
-        self.conv1 = Conv2d_2(
+        self.conv1 = Conv2d_JM(
             in_channels,
             bottleneck_channels,
             kernel_size=1,
@@ -207,7 +208,7 @@ class BottleneckBlock_2(ResNetBlockBase):
             norm=get_norm(norm, bottleneck_channels),
         )
 
-        self.conv2 = Conv2d_2(
+        self.conv2 = Conv2d_JM(
             bottleneck_channels,
             bottleneck_channels,
             kernel_size=3,
@@ -219,7 +220,7 @@ class BottleneckBlock_2(ResNetBlockBase):
             norm=get_norm(norm, bottleneck_channels),
         )
 
-        self.conv3 = Conv2d_2(
+        self.conv3 = Conv2d_JM(
             bottleneck_channels,
             out_channels,
             kernel_size=1,
@@ -244,6 +245,7 @@ class BottleneckBlock_2(ResNetBlockBase):
         # Add it as an option when we need to use this code to train a backbone.
 
     def forward(self, x):
+        # print("BottleneckBlock_JM_forward")
         out = self.conv1(x)
         out = F.relu_(out)
 
@@ -376,120 +378,6 @@ class DeformBottleneckBlock(ResNetBlockBase):
         out = F.relu_(out)
         return out
 
-class DeformBottleneckBlock_2(ResNetBlockBase):
-    def __init__(
-        self,
-        in_channels,
-        out_channels,
-        *,
-        bottleneck_channels,
-        stride=1,
-        num_groups=1,
-        norm="BN",
-        stride_in_1x1=False,
-        dilation=1,
-        deform_modulated=False,
-        deform_num_groups=1,
-    ):
-        """
-        Similar to :class:`BottleneckBlock`, but with deformable conv in the 3x3 convolution.
-        """
-        super().__init__(in_channels, out_channels, stride)
-        self.deform_modulated = deform_modulated
-
-        if in_channels != out_channels:
-            self.shortcut = Conv2d_2(
-                in_channels,
-                out_channels,
-                kernel_size=1,
-                stride=stride,
-                bias=False,
-                norm=get_norm(norm, out_channels),
-            )
-        else:
-            self.shortcut = None
-
-        stride_1x1, stride_3x3 = (stride, 1) if stride_in_1x1 else (1, stride)
-
-        self.conv1 = Conv2d_2(
-            in_channels,
-            bottleneck_channels,
-            kernel_size=1,
-            stride=stride_1x1,
-            bias=False,
-            norm=get_norm(norm, bottleneck_channels),
-        )
-
-        if deform_modulated:
-            deform_conv_op = ModulatedDeformConv
-            # offset channels are 2 or 3 (if with modulated) * kernel_size * kernel_size
-            offset_channels = 27
-        else:
-            deform_conv_op = DeformConv
-            offset_channels = 18
-
-        self.conv2_offset = Conv2d_2(
-            bottleneck_channels,
-            offset_channels * deform_num_groups,
-            kernel_size=3,
-            stride=stride_3x3,
-            padding=1 * dilation,
-            dilation=dilation,
-        )
-        self.conv2 = deform_conv_op(
-            bottleneck_channels,
-            bottleneck_channels,
-            kernel_size=3,
-            stride=stride_3x3,
-            padding=1 * dilation,
-            bias=False,
-            groups=num_groups,
-            dilation=dilation,
-            deformable_groups=deform_num_groups,
-            norm=get_norm(norm, bottleneck_channels),
-        )
-
-        self.conv3 = Conv2d_2(
-            bottleneck_channels,
-            out_channels,
-            kernel_size=1,
-            bias=False,
-            norm=get_norm(norm, out_channels),
-        )
-
-        for layer in [self.conv1, self.conv2, self.conv3, self.shortcut]:
-            if layer is not None:  # shortcut can be None
-                weight_init.c2_msra_fill(layer)
-
-        nn.init.constant_(self.conv2_offset.weight, 0)
-        nn.init.constant_(self.conv2_offset.bias, 0)
-
-    def forward(self, x):
-        out = self.conv1(x)
-        out = F.relu_(out)
-
-        if self.deform_modulated:
-            offset_mask = self.conv2_offset(out)
-            offset_x, offset_y, mask = torch.chunk(offset_mask, 3, dim=1)
-            offset = torch.cat((offset_x, offset_y), dim=1)
-            mask = mask.sigmoid()
-            out = self.conv2(out, offset, mask)
-        else:
-            offset = self.conv2_offset(out)
-            out = self.conv2(out, offset)
-        out = F.relu_(out)
-
-        out = self.conv3(out)
-
-        if self.shortcut is not None:
-            shortcut = self.shortcut(x)
-        else:
-            shortcut = x
-
-        out += shortcut
-        out = F.relu_(out)
-        return out
-
 
 def make_stage(block_class, num_blocks, first_stride, **kwargs):
     """
@@ -546,7 +434,7 @@ class BasicStem(nn.Module):
         return 4  # = stride 2 conv -> stride 2 max pool
 
 
-class BasicStem_2(nn.Module):
+class BasicStem_JM(nn.Module):
     def __init__(self, in_channels=3, out_channels=64, norm="BN"):
         """
         Args:
@@ -555,7 +443,7 @@ class BasicStem_2(nn.Module):
                 (one of {"FrozenBN", "BN", "GN"}).
         """
         super().__init__()
-        self.conv1 = Conv2d_2(
+        self.conv1 = Conv2d_JM(
             in_channels,
             out_channels,
             kernel_size=7,
@@ -567,7 +455,6 @@ class BasicStem_2(nn.Module):
         weight_init.c2_msra_fill(self.conv1)
 
     def forward(self, x):
-        print("BasicStem_2_forward")
         x = self.conv1(x)
         x = F.relu_(x)
         x = F.max_pool2d(x, kernel_size=3, stride=2, padding=1)
@@ -657,7 +544,7 @@ class ResNet(Backbone):
             for name in self._out_features
         }
 
-class ResNet_2(Backbone):
+class ResNet_JM(Backbone):
     def __init__(self, stem, stages, num_classes=None, out_features=None):
         """
         Args:
@@ -669,7 +556,7 @@ class ResNet_2(Backbone):
                 be returned in forward. Can be anything in "stem", "linear", or "res2" ...
                 If None, will return the output of the last layer.
         """
-        super(ResNet_2, self).__init__()
+        super(ResNet_JM, self).__init__()
         self.stem = stem
         self.num_classes = num_classes
 
@@ -710,7 +597,6 @@ class ResNet_2(Backbone):
             assert out_feature in children, "Available children: {}".format(", ".join(children))
 
     def forward(self, x):
-        print("ResNet_2_forward")
         outputs = {}
         x = self.stem(x)
         if "stem" in self._out_features:
@@ -812,7 +698,7 @@ def build_resnet_backbone(cfg, input_shape):
     return ResNet(stem, stages, out_features=out_features)
 
 @BACKBONE_REGISTRY.register()
-def build_resnet_backbone_2(cfg, input_shape):
+def build_resnet_backbone_JM(cfg, input_shape):
     """
     Create a ResNet instance from config.
 
@@ -821,7 +707,7 @@ def build_resnet_backbone_2(cfg, input_shape):
     """
     # need registration of new blocks/stems?
     norm = cfg.MODEL.RESNETS.NORM
-    stem = BasicStem_2(
+    stem = BasicStem_JM(
         in_channels=input_shape.channels,
         out_channels=cfg.MODEL.RESNETS.STEM_OUT_CHANNELS,
         norm=norm,
@@ -872,11 +758,11 @@ def build_resnet_backbone_2(cfg, input_shape):
             "dilation": dilation,
         }
         if deform_on_per_stage[idx]:
-            stage_kargs["block_class"] = DeformBottleneckBlock_2
+            stage_kargs["block_class"] = DeformBottleneckBlock
             stage_kargs["deform_modulated"] = deform_modulated
             stage_kargs["deform_num_groups"] = deform_num_groups
         else:
-            stage_kargs["block_class"] = BottleneckBlock_2
+            stage_kargs["block_class"] = BottleneckBlock_JM
         blocks = make_stage(**stage_kargs)
         in_channels = out_channels
         out_channels *= 2
@@ -886,4 +772,4 @@ def build_resnet_backbone_2(cfg, input_shape):
             for block in blocks:
                 block.freeze()
         stages.append(blocks)
-    return ResNet_2(stem, stages, out_features=out_features)
+    return ResNet_JM(stem, stages, out_features=out_features)
